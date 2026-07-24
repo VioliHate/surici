@@ -1,56 +1,80 @@
-# Welcome to your Expo app 👋
+# Surici
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+**Surici** is a React Native recipe finder inspired by the clever Calabrian pantry mouse that always finds something to eat. Enter the ingredients you already have, and Surici will discover delicious recipes using the **TheMealDB API**.
 
-## Get started
+## Tech Stack
 
-1. Install dependencies
+- Expo
+- React Native
+- TypeScript
+- React Navigation v6+
+- Zustand
+- AsyncStorage
+- NativeWind
+- React Native Paper
+- Expo Image
+- TheMealDB API
 
-   ```bash
-   npm install
-   ```
+## Getting Started
 
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+### 1. Clone the repository
 
 ```bash
-npm run reset-project
+git clone <repository-url>
+cd surici
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### 2. Install dependencies
 
-### Other setup steps
+```bash
+npm install
+```
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+### 3. Start the development server
 
-## Learn more
+```bash
+npx expo start
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+Then choose one of the available targets:
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+- Android Emulator
+- iOS Simulator
+- Expo Go
+- Web Browser
 
-## Join the community
+## Available Scripts
 
-Join our community of developers creating universal apps.
+```bash
+npm install        # Install dependencies
+npm start          # Start Expo
+npm run android    # Run on Android
+npm run ios        # Run on iOS
+npm run web        # Run on Web
+npm run lint       # Run ESLint
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Project Structure
+
+```
+app/          # Screens
+components/   # Reusable UI components
+hooks/        # Custom hooks
+services/     # API calls
+store/        # Zustand stores
+types/        # TypeScript types
+utils/        # Utility functions
+assets/       # Images, fonts and static resources
+```
+
+## Features
+
+- Search recipes by available ingredients
+- View detailed recipe information
+- Save preferences locally
+- Responsive and modern UI
+- Fast and lightweight experience
+
+## License
+
+This project is licensed under the MIT License.
