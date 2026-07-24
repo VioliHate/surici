@@ -37,6 +37,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "db9aaf9f-843f-4963-8287-0028f6338260"
+      }
+    },
+    "owner": "violihates-team"
   }
 }
