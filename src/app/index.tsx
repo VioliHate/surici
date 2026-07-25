@@ -1,8 +1,10 @@
+import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
   Image,
+  Pressable,
   StyleSheet,
   Text,
   View,
@@ -18,6 +20,7 @@ type Meal = {
 export default function HomeScreen() {
   const [meals, setMeals] = useState<Meal[]>([]);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     fetchRandomMeals();
@@ -47,7 +50,10 @@ export default function HomeScreen() {
   };
 
   const renderMeal = ({ item }: { item: Meal }) => (
-    <View style={styles.card}>
+    <Pressable
+      style={styles.card}
+      onPress={() => router.push(`/recipe/${item.idMeal}`)}
+    >
       <Image
         source={{ uri: item.strMealThumb }}
         style={styles.image}
@@ -56,20 +62,22 @@ export default function HomeScreen() {
       <Text style={styles.mealName} numberOfLines={2}>
         {item.strMeal}
       </Text>
-    </View>
+    </Pressable>
   );
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Surici</Text>
-        <Text style={styles.subtitle}>Ricette casuali del giorno</Text>
+        <Text style={styles.subtitle}>
+          Il topo calabrese che trova sempre qualcosa da mangiare
+        </Text>
       </View>
 
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size='large' color='#E07A5F' />
-          <Text style={styles.loadingText}>Caricamento ricette...</Text>
+          <Text style={styles.loadingText}>Sto cercando ricette...</Text>
         </View>
       ) : (
         <FlatList
@@ -96,14 +104,15 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: "700",
     color: "#1F2937",
   },
   subtitle: {
-    fontSize: 15,
+    fontSize: 14,
     color: "#92400E",
     marginTop: 4,
+    lineHeight: 20,
   },
   loadingContainer: {
     flex: 1,
