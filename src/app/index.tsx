@@ -17,6 +17,8 @@ type Meal = {
   strMealThumb: string;
 };
 
+const router = useRouter();
+
 export default function HomeScreen() {
   const [meals, setMeals] = useState<Meal[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,7 +54,12 @@ export default function HomeScreen() {
   const renderMeal = ({ item }: { item: Meal }) => (
     <Pressable
       style={styles.card}
-      onPress={() => router.push(`/recipe/${item.idMeal}`)}
+      onPress={() =>
+        router.push({
+          pathname: "/recipe/[id]",
+          params: { id: item.idMeal },
+        })
+      }
     >
       <Image
         source={{ uri: item.strMealThumb }}
