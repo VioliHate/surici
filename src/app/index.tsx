@@ -62,7 +62,7 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Surici</Text>
+        <Text className='text-3xl font-bold text-red-500'>Surici</Text>
         <Text style={styles.subtitle}>Ricette casuali del giorno</Text>
       </View>
 
