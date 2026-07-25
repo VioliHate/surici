@@ -51,7 +51,6 @@ export default function RecipeDetail() {
     }
   };
 
-  // Estrae gli ingredienti (TheMealDB li mette in strIngredient1, strIngredient2...)
   const getIngredients = () => {
     if (!meal) return [];
     const ingredients = [];
@@ -59,7 +58,10 @@ export default function RecipeDetail() {
       const ingredient = meal[`strIngredient${i}`];
       const measure = meal[`strMeasure${i}`];
       if (ingredient && ingredient.trim() !== "") {
-        ingredients.push(`${measure || ""} ${ingredient}`.trim());
+        ingredients.push({
+          name: ingredient.trim(),
+          measure: measure ? measure.trim() : "",
+        });
       }
     }
     return ingredients;
@@ -76,14 +78,14 @@ export default function RecipeDetail() {
   if (!meal) {
     return (
       <SafeAreaView style={styles.loadingContainer}>
-        <Text>Ricetta non trovata</Text>
+        <Text style={styles.errorText}>Ricetta non trovata</Text>
       </SafeAreaView>
     );
   }
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header con bottone indietro */}
+      {/* Barra superiore personalizzata */}
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name='arrow-back' size={24} color='#1F2937' />
@@ -94,32 +96,65 @@ export default function RecipeDetail() {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
-        <Image
-          source={{ uri: meal.strMealThumb }}
-          style={styles.image}
-          resizeMode='cover'
-        />
+        {/* Contenitore Immagine con angoli arrotondati e ombra */}
+        <View style={styles.imageContainer}>
+          <Image
+            source={{ uri: meal.strMealThumb }}
+            style={styles.image}
+            resizeMode='cover'
+          />
+        </View>
 
         <View style={styles.content}>
+          {/* Titolo Principale */}
           <Text style={styles.title}>{meal.strMeal}</Text>
 
-          <View style={styles.meta}>
-            <Text style={styles.metaText}>{meal.strCategory}</Text>
-            <Text style={styles.metaDot}>•</Text>
-            <Text style={styles.metaText}>{meal.strArea}</Text>
+          {/* Badge per Categoria e Provenienza */}
+          <View style={styles.metaContainer}>
+            <View style={styles.badge}>
+              <Ionicons
+                name='restaurant-outline'
+                size={14}
+                color='#E07A5F'
+                style={styles.badgeIcon}
+              />
+              <Text style={styles.badgeText}>{meal.strCategory}</Text>
+            </View>
+            <View style={styles.badge}>
+              <Ionicons
+                name='earth-outline'
+                size={14}
+                color='#E07A5F'
+                style={styles.badgeIcon}
+              />
+              <Text style={styles.badgeText}>{meal.strArea}</Text>
+            </View>
           </View>
 
-          {/* Ingredienti */}
+          {/* Sezione Ingredienti dentro una scheda pulita */}
           <Text style={styles.sectionTitle}>Ingredienti</Text>
-          {getIngredients().map((item, index) => (
-            <Text key={index} style={styles.ingredient}>
-              • {item}
-            </Text>
-          ))}
+          <View style={styles.card}>
+            {getIngredients().map((item, index) => (
+              <View key={index} style={styles.ingredientRow}>
+                <Ionicons
+                  name='checkmark-circle'
+                  size={18}
+                  color='#E07A5F'
+                  style={styles.checkIcon}
+                />
+                <Text style={styles.ingredientText}>
+                  <Text style={styles.ingredientMeasure}>{item.measure} </Text>
+                  {item.name}
+                </Text>
+              </View>
+            ))}
+          </View>
 
-          {/* Istruzioni */}
+          {/* Sezione Preparazione */}
           <Text style={styles.sectionTitle}>Preparazione</Text>
-          <Text style={styles.instructions}>{meal.strInstructions}</Text>
+          <View style={styles.card}>
+            <Text style={styles.instructions}>{meal.strInstructions}</Text>
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -137,66 +172,122 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#FFF8F0",
   },
+  errorText: {
+    fontSize: 16,
+    color: "#92400E",
+    fontWeight: "600",
+  },
   header: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 14,
     backgroundColor: "#FFF8F0",
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(31, 41, 55, 0.05)",
   },
   backButton: {
-    padding: 8,
+    padding: 6,
     marginRight: 8,
+    borderRadius: 50,
+    backgroundColor: "rgba(31, 41, 55, 0.05)",
   },
   headerTitle: {
     flex: 1,
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#1F2937",
-  },
-  image: {
-    width: "100%",
-    height: 260,
-  },
-  content: {
-    padding: 20,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#1F2937",
-    marginBottom: 8,
-  },
-  meta: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 24,
-  },
-  metaText: {
-    fontSize: 14,
-    color: "#92400E",
-  },
-  metaDot: {
-    marginHorizontal: 8,
-    color: "#92400E",
-  },
-  sectionTitle: {
     fontSize: 18,
     fontWeight: "700",
     color: "#1F2937",
-    marginBottom: 12,
-    marginTop: 8,
   },
-  ingredient: {
+  imageContainer: {
+    marginHorizontal: 16,
+    marginTop: 16,
+    borderRadius: 24,
+    backgroundColor: "#FFFFFF",
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  image: {
+    width: "100%",
+    height: 280,
+  },
+  content: {
+    paddingHorizontal: 16,
+    paddingTop: 20,
+  },
+  title: {
+    fontSize: 26,
+    fontWeight: "800",
+    color: "#1F2937",
+    lineHeight: 32,
+    marginBottom: 12,
+  },
+  metaContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginBottom: 24,
+  },
+  badge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(224, 122, 95, 0.12)",
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 50,
+  },
+  badgeIcon: {
+    marginRight: 6,
+  },
+  badgeText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#92400E",
+  },
+  sectionTitle: {
+    fontSize: 19,
+    fontWeight: "700",
+    color: "#1F2937",
+    marginBottom: 12,
+  },
+  card: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    padding: 16,
+    marginBottom: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  ingredientRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(31, 41, 55, 0.03)",
+  },
+  checkIcon: {
+    marginTop: 2,
+    marginRight: 10,
+  },
+  ingredientText: {
+    flex: 1,
     fontSize: 15,
     color: "#374151",
-    marginBottom: 6,
     lineHeight: 22,
+  },
+  ingredientMeasure: {
+    fontWeight: "700",
+    color: "#E07A5F",
   },
   instructions: {
     fontSize: 15,
     color: "#374151",
-    lineHeight: 24,
-    marginBottom: 40,
+    lineHeight: 25,
   },
 });
