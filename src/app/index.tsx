@@ -132,7 +132,13 @@ export default function HomeScreen() {
 
   const handleAddIngredient = () => {
     if (inputText.trim() !== "") {
-      addIngredient(inputText);
+      const parts = inputText.split(",");
+      parts.forEach((part) => {
+        const cleanIngredient = part.trim();
+        if (cleanIngredient !== "") {
+          addIngredient(cleanIngredient);
+        }
+      });
       setInputText("");
     }
   };
