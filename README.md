@@ -10,7 +10,6 @@
 - React Navigation v6+
 - Zustand
 - AsyncStorage
-- NativeWind
 - React Native Paper
 - Expo Image
 - TheMealDB API
