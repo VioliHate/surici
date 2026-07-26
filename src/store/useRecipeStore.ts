@@ -1,6 +1,5 @@
 import { create } from "zustand";
 
-// Aggiorna il tipo del Mode includendo 'filtri'
 type FilterMode = "random" | "frigo" | "filtri";
 
 interface RecipeState {
