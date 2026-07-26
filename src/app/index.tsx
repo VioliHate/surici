@@ -12,11 +12,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRecipeStore } from "../store/useRecipeStore";
 
 // Components
+import { ChiMiFazzu } from "../components/ChiMiFazzu";
 import { HomeHeader } from "../components/HomeHeader";
 import { IngredientSelector } from "../components/IngredientSelector";
 import { ModeSelector } from "../components/ModeSelector";
 import { RecipeCard } from "../components/RecipeCard";
-import { StipiSelector } from "../components/StipiSelector"; // Componente aggiornato
+import { StipiSelector } from "../components/StipiSelector";
 
 type Meal = {
   idMeal: string;
@@ -28,6 +29,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const [meals, setMeals] = useState<Meal[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isSpinning, setIsSpinning] = useState(false);
 
   const {
     mode,
@@ -40,7 +42,12 @@ export default function HomeScreen() {
   } = useRecipeStore();
 
   useEffect(() => {
-    fetchRecipes();
+    if (mode === "chimifazzu") {
+      setMeals([]);
+      setLoading(false);
+    } else {
+      fetchRecipes();
+    }
   }, [mode, ingredients, selectedArea]);
 
   const fetchRecipes = async () => {
@@ -121,7 +128,7 @@ export default function HomeScreen() {
         setMeals(filteredResults);
       }
 
-      // --- 3. NUOVA MODALITÀ: STIPI NEL MONDO ---
+      // --- 3. MODALITÀ: STIPI NEL MONDO ---
       else if (mode === "stipi") {
         if (!selectedArea) {
           setMeals([]);
@@ -143,6 +150,30 @@ export default function HomeScreen() {
     }
   };
 
+  // --- ESTRAZIONE CASUALE JOLLY PER CHI MI FAZZU ---
+  const handleChiMiFazzuExtract = async () => {
+    try {
+      setIsSpinning(true);
+      setMeals([]);
+
+      // Ritardo per simulare la slot machine
+      await new Promise((resolve) => setTimeout(resolve, 900));
+
+      const response = await fetch(
+        "https://www.themealdb.com/api/json/v1/1/random.php",
+      );
+      const data = await response.json();
+
+      if (data.meals?.[0]) {
+        setMeals([data.meals[0]]);
+      }
+    } catch (error) {
+      console.log("Errore estrazione Chi Mi Fazzu:", error);
+    } finally {
+      setIsSpinning(false);
+    }
+  };
+
   const handleNavigateToDetail = (id: string) => {
     router.push({
       pathname: "/recipe/[id]",
@@ -160,7 +191,7 @@ export default function HomeScreen() {
 
       <ModeSelector currentMode={mode} onModeChange={setMode} />
 
-      {/* Interfaccia Frigo */}
+      {/* Sezione Frigo */}
       {mode === "frigo" && (
         <IngredientSelector
           ingredients={ingredients}
@@ -169,7 +200,7 @@ export default function HomeScreen() {
         />
       )}
 
-      {/* Interfaccia Stipi nel Mondo */}
+      {/* Sezione Stipi nel Mondo */}
       {mode === "stipi" && (
         <StipiSelector
           selectedArea={selectedArea}
@@ -177,10 +208,19 @@ export default function HomeScreen() {
         />
       )}
 
-      {loading ? (
+      {/* Sezione Chi Mi Fazzu */}
+      {mode === "chimifazzu" && (
+        <ChiMiFazzu onSpin={handleChiMiFazzuExtract} isSpinning={isSpinning} />
+      )}
+
+      {loading || isSpinning ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size='large' color='#E07A5F' />
-          <Text style={styles.loadingText}>Surici sta lavorando per te...</Text>
+          <Text style={styles.loadingText}>
+            {isSpinning
+              ? "Surici sta mescolando il pentolone..."
+              : "Surici sta lavorando per te..."}
+          </Text>
         </View>
       ) : mode === "frigo" && ingredients.length === 0 ? (
         <View style={styles.emptyContainer}>
@@ -206,21 +246,21 @@ export default function HomeScreen() {
             Seleziona uno Stato per aprire il suo stipo e scoprirne le ricette!
           </Text>
         </View>
-      ) : (
+      ) : mode === "chimifazzu" && meals.length === 0 ? null : (
         <FlatList
           data={meals}
           keyExtractor={(item) => item.idMeal}
           renderItem={({ item }) => (
             <RecipeCard item={item} onPress={handleNavigateToDetail} />
           )}
-          numColumns={2}
+          numColumns={mode === "chimifazzu" ? 1 : 2}
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
-          columnWrapperStyle={styles.row}
+          columnWrapperStyle={mode === "chimifazzu" ? null : styles.row}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>
-                Nessuna ricetta trovata in questo stipo.
+                Nessuna ricetta trovata. Prova a cambiare selezione.
               </Text>
             </View>
           }

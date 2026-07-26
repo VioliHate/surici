@@ -1,105 +1,89 @@
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
-type AppMode = "random" | "frigo" | "stipi";
+type AppMode = "random" | "frigo" | "stipi" | "chimifazzu";
 
 interface ModeSelectorProps {
   currentMode: AppMode;
   onModeChange: (mode: AppMode) => void;
 }
 
-export const ModeSelector: React.FC<ModeSelectorProps> = ({
-  currentMode,
-  onModeChange,
-}) => {
+export function ModeSelector({ currentMode, onModeChange }: ModeSelectorProps) {
+  const modesConfig = [
+    { id: "random" as AppMode, label: "Casuale", icon: "shuffle-outline" },
+    { id: "frigo" as AppMode, label: "Svuota Frigo", icon: "basket-outline" },
+    { id: "stipi" as AppMode, label: "Stipi nel Mondo", icon: "earth-outline" },
+    {
+      id: "chimifazzu" as AppMode,
+      label: "Chi mi fazzu",
+      icon: "dice-outline",
+    },
+  ];
+
   return (
-    <View style={styles.tabContainer}>
-      <Pressable
-        style={[
-          styles.tabButton,
-          currentMode === "random" && styles.tabActiveButton,
-        ]}
-        onPress={() => onModeChange("random")}
+    <View style={styles.container}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContainer}
       >
-        <Ionicons
-          name='shuffle'
-          size={18}
-          color={currentMode === "random" ? "#FFFFFF" : "#E07A5F"}
-        />
-        <Text
-          style={[
-            styles.tabText,
-            currentMode === "random" && styles.tabActiveText,
-          ]}
-        >
-          Casuali
-        </Text>
-      </Pressable>
-      <Pressable
-        style={[
-          styles.tabButton,
-          currentMode === "frigo" && styles.tabActiveButton,
-        ]}
-        onPress={() => onModeChange("frigo")}
-      >
-        <Ionicons
-          name='snow-outline'
-          size={18}
-          color={currentMode === "frigo" ? "#FFFFFF" : "#E07A5F"}
-        />
-        <Text
-          style={[
-            styles.tabText,
-            currentMode === "frigo" && styles.tabActiveText,
-          ]}
-        >
-          Svuota Frigo
-        </Text>
-      </Pressable>
-      <Pressable
-        style={[
-          styles.tabButton,
-          currentMode === "stipi" && styles.tabActiveButton,
-        ]}
-        onPress={() => onModeChange("stipi")}
-      >
-        <Ionicons
-          name='options'
-          size={20}
-          color={currentMode === "stipi" ? "#FFFFFF" : "#92400E"}
-        />
-        <Text
-          style={[
-            styles.tabText,
-            currentMode === "stipi" && styles.tabActiveText,
-          ]}
-        >
-          Stipi nel Mondo
-        </Text>
-      </Pressable>
+        {modesConfig.map((item) => {
+          const isActive = currentMode === item.id;
+          return (
+            <Pressable
+              key={item.id}
+              style={[styles.button, isActive && styles.activeButton]}
+              onPress={() => onModeChange(item.id)}
+            >
+              <Ionicons
+                name={item.icon as any}
+                size={18}
+                color={isActive ? "#FFFFFF" : "#92400E"}
+              />
+              <Text
+                style={[styles.buttonText, isActive && styles.activeButtonText]}
+              >
+                {item.label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </ScrollView>
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  tabContainer: {
-    flexDirection: "row",
-    paddingHorizontal: 20,
-    marginVertical: 12,
-    gap: 10,
+  container: {
+    marginVertical: 10,
+    height: 46,
   },
-  tabButton: {
-    flex: 1,
+  scrollContainer: {
+    paddingHorizontal: 16,
+    gap: 8,
+    alignItems: "center",
+  },
+  button: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
+    backgroundColor: "#FFF",
+    paddingHorizontal: 16,
     paddingVertical: 10,
-    borderRadius: 14,
-    backgroundColor: "rgba(224, 122, 95, 0.12)",
+    borderRadius: 20,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: "rgba(146, 64, 14, 0.15)",
   },
-  tabActiveButton: { backgroundColor: "#E07A5F" },
-  tabText: { fontSize: 14, fontWeight: "700", color: "#E07A5F" },
-  tabActiveText: { color: "#FFFFFF" },
+  activeButton: {
+    backgroundColor: "#E07A5F",
+    borderColor: "#E07A5F",
+  },
+  buttonText: {
+    color: "#92400E",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  activeButtonText: {
+    color: "#FFFFFF",
+  },
 });

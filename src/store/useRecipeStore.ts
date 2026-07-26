@@ -1,11 +1,12 @@
 import { create } from "zustand";
 
-type AppMode = "random" | "frigo" | "stipi";
+// Aggiorna il tipo includendo 'chimifazzu'
+type AppMode = "random" | "frigo" | "stipi" | "chimifazzu";
 
 interface RecipeState {
   mode: AppMode;
   ingredients: string[];
-  selectedArea: string; // Teniamo solo l'area dello "stipo"
+  selectedArea: string;
   setMode: (mode: AppMode) => void;
   addIngredient: (ing: string) => void;
   removeIngredient: (i: string) => void;
