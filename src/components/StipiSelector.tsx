@@ -29,8 +29,16 @@ export function FilterSelector({
         const catData = await catRes.json();
         const areaData = await areaRes.json();
 
-        setCategories(catData.meals.map((m: any) => m.strCategory));
-        setAreas(areaData.meals.map((m: any) => m.strArea));
+        // Estraiamo i nomi e usiamo new Set() per eliminare i duplicati
+        const uniqueCategories = Array.from(
+          new Set(catData.meals.map((m: any) => m.strCategory as string)),
+        );
+        const uniqueAreas = Array.from(
+          new Set(areaData.meals.map((m: any) => m.strArea as string)),
+        );
+
+        setCategories(uniqueCategories as string[]);
+        setAreas(uniqueAreas as string[]);
       } catch (err) {
         console.log("Errore caricamento filtri:", err);
       } finally {
