@@ -12,6 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRecipeStore } from "../store/useRecipeStore";
 
 // Components
+import { JollyRecipeCard } from "@/components/JollyRecipeCard";
 import { ChiMiFazzu } from "../components/ChiMiFazzu";
 import { HomeHeader } from "../components/HomeHeader";
 import { IngredientSelector } from "../components/IngredientSelector";
@@ -246,17 +247,20 @@ export default function HomeScreen() {
             Seleziona uno Stato per aprire il suo stipo e scoprirne le ricette!
           </Text>
         </View>
-      ) : mode === "chimifazzu" && meals.length === 0 ? null : (
+      ) : mode === "chimifazzu" && meals.length === 0 ? null : mode ===
+          "chimifazzu" && meals.length > 0 ? (
+        <JollyRecipeCard item={meals[0]} onPress={handleNavigateToDetail} />
+      ) : (
         <FlatList
           data={meals}
           keyExtractor={(item) => item.idMeal}
           renderItem={({ item }) => (
             <RecipeCard item={item} onPress={handleNavigateToDetail} />
           )}
-          numColumns={mode === "chimifazzu" ? 1 : 2}
+          numColumns={2}
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
-          columnWrapperStyle={mode === "chimifazzu" ? null : styles.row}
+          columnWrapperStyle={styles.row}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>
