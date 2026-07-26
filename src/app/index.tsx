@@ -12,6 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRecipeStore } from "../store/useRecipeStore";
 
 // Components
+import { FilterSelector } from "../components/FilterSelector"; // Nuovo componente
 import { HomeHeader } from "../components/HomeHeader";
 import { IngredientSelector } from "../components/IngredientSelector";
 import { ModeSelector } from "../components/ModeSelector";
@@ -21,6 +22,8 @@ type Meal = {
   idMeal: string;
   strMeal: string;
   strMealThumb: string;
+  strCategory?: string;
+  strArea?: string;
 };
 
 export default function HomeScreen() {
@@ -28,17 +31,27 @@ export default function HomeScreen() {
   const [meals, setMeals] = useState<Meal[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const { mode, ingredients, setMode, addIngredient, removeIngredient } =
-    useRecipeStore();
+  const {
+    mode,
+    ingredients,
+    selectedCategory,
+    selectedArea,
+    setMode,
+    addIngredient,
+    removeIngredient,
+    setSelectedCategory,
+    setSelectedArea,
+  } = useRecipeStore();
 
   useEffect(() => {
     fetchRecipes();
-  }, [mode, ingredients]);
+  }, [mode, ingredients, selectedCategory, selectedArea]);
 
   const fetchRecipes = async () => {
     try {
       setLoading(true);
 
+      // --- MODALITÀ: RANDOM ---
       if (mode === "random") {
         const results: Meal[] = [];
         for (let i = 0; i < 8; i++) {
@@ -49,7 +62,10 @@ export default function HomeScreen() {
           if (data.meals?.[0]) results.push(data.meals[0]);
         }
         setMeals(results);
-      } else {
+      }
+
+      // --- MODALITÀ: SVUOTA FRIGO ---
+      else if (mode === "frigo") {
         if (ingredients.length === 0) {
           setMeals([]);
           setLoading(false);
@@ -108,6 +124,60 @@ export default function HomeScreen() {
         );
         setMeals(filteredResults);
       }
+
+      // --- NUOVA MODALITÀ: FILTRI AVANZATI (CATEGORIA + AREA) ---
+      else if (mode === "filtri") {
+        if (!selectedCategory && !selectedArea) {
+          // Se nessun filtro è selezionato, mostriamo un set vuoto o iniziale
+          setMeals([]);
+          setLoading(false);
+          return;
+        }
+
+        let url = "";
+        // Scegliamo l'endpoint principale in base a cosa ha selezionato l'utente
+        if (selectedCategory) {
+          url = `https://www.themealdb.com/api/json/v1/1/filter.php?c=${selectedCategory}`;
+        } else {
+          url = `https://www.themealdb.com/api/json/v1/1/filter.php?a=${selectedArea}`;
+        }
+
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (!data.meals) {
+          setMeals([]);
+          setLoading(false);
+          return;
+        }
+
+        // Se sono stati scelti ENTRAMBI i filtri, dobbiamo fare un controllo incrociato sui dettagli
+        if (selectedCategory && selectedArea) {
+          const crossFilteredResults: Meal[] = [];
+          await Promise.all(
+            data.meals.map(async (shortMeal: Meal) => {
+              try {
+                const detailResponse = await fetch(
+                  `https://www.themealdb.com/api/json/v1/1/lookup.php?i=${shortMeal.idMeal}`,
+                );
+                const detailData = await detailResponse.json();
+                const fullMeal = detailData.meals?.[0];
+
+                // Verifichiamo che corrisponda anche al secondo filtro (Area)
+                if (fullMeal && fullMeal.strArea === selectedArea) {
+                  crossFilteredResults.push(shortMeal);
+                }
+              } catch (err) {
+                console.log("Errore filtri incrociati:", err);
+              }
+            }),
+          );
+          setMeals(crossFilteredResults);
+        } else {
+          // Se ne è stato selezionato solo uno dei due, i dati della prima chiamata bastano già
+          setMeals(data.meals);
+        }
+      }
     } catch (error) {
       console.log("Errore API principale:", error);
     } finally {
@@ -132,11 +202,22 @@ export default function HomeScreen() {
 
       <ModeSelector currentMode={mode} onModeChange={setMode} />
 
+      {/* Selettore Frigo */}
       {mode === "frigo" && (
         <IngredientSelector
           ingredients={ingredients}
           onAddIngredients={handleAddIngredientsList}
           onRemoveIngredient={removeIngredient}
+        />
+      )}
+
+      {/* Selettore Filtri avanzati */}
+      {mode === "filtri" && (
+        <FilterSelector
+          selectedCategory={selectedCategory}
+          selectedArea={selectedArea}
+          onCategoryChange={setSelectedCategory}
+          onAreaChange={setSelectedArea}
         />
       )}
 
@@ -157,6 +238,18 @@ export default function HomeScreen() {
             Metti almeno un ingrediente per stanare le ricette!
           </Text>
         </View>
+      ) : mode === "filtri" && !selectedCategory && !selectedArea ? (
+        <View style={styles.emptyContainer}>
+          <Ionicons
+            name='options-outline'
+            size={48}
+            color='#92400E'
+            opacity={0.5}
+          />
+          <Text style={styles.emptyText}>
+            Seleziona una categoria o un'area geografica per filtrare i piatti!
+          </Text>
+        </View>
       ) : (
         <FlatList
           data={meals}
@@ -171,7 +264,7 @@ export default function HomeScreen() {
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>
-                Nessuna ricetta trovata. Prova un altro ingrediente.
+                Nessuna ricetta trovata con questi filtri.
               </Text>
             </View>
           }
