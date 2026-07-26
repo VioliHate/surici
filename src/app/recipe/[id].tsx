@@ -22,148 +22,11 @@ type MealDetail = {
   [key: string]: string | null;
 };
 
-// Mappa per correggere gli ingredienti comuni rimasti in inglese o tradotti male
-const INGREDIENT_CORRECTIONS: Record<string, string> = {
-  "olive oil": "olio d'oliva",
-  "oil": "olio",
-  "tomato": "pomodoro",
-  "tomatoes": "pomodori",
-  "chopped tomatoes": "pomodori a pezzetti",
-  "garlic": "aglio",
-  "onion": "cipolla",
-  "onions": "cipolle",
-  "chicken": "pollo",
-  "flour": "farina",
-  "rice": "riso",
-  "basil": "basilico",
-  "basil leaves": "foglie di basilico",
-  "paprika": "paprica",
-};
-
-// Mappa per tradurre le abbreviazioni delle misure culinarie inglesi
-const MEASURE_TRANSLATIONS: Record<string, string> = {
-  "tblsp": "cucchiai",
-  "tbsp": "cucchiai",
-  "tblsp ": "cucchiai",
-  "tbsp ": "cucchiai",
-  "tablespoon": "cucchiaio",
-  "tablespoons": "cucchiai",
-  "tsp": "cucchiaini",
-  "teaspoon": "cucchiaino",
-  "teaspoons": "cucchiaini",
-  "to serve": "per servire",
-  "chopped": "tritato",
-  "sliced": "affettato",
-  "pinch": "pizzico",
-  "clove peeled crushed": "spicchio sbucciato e schiacciato",
-  "cloves peeled crushed": "spicchi sbucciati e schiacciati",
-};
-
 export default function RecipeDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const [meal, setMeal] = useState<MealDetail | null>(null);
   const [loading, setLoading] = useState(true);
-  const [translatedInstructions, setTranslatedInstructions] = useState<
-    string | null
-  >(null);
-  const [translatedIngredients, setTranslatedIngredients] = useState<
-    { name: string; measure: string }[] | null
-  >(null);
-  const [translating, setTranslating] = useState(false);
-
-  const cleanAndTranslateText = (
-    text: string,
-    dictionary: Record<string, string>,
-  ): string => {
-    let cleaned = text.trim();
-    const lower = cleaned.toLowerCase();
-    if (dictionary[lower]) {
-      return dictionary[lower];
-    }
-    Object.keys(dictionary).forEach((key) => {
-      const regex = new RegExp(`\\b${key}\\b`, "gi");
-      cleaned = cleaned.replace(regex, dictionary[key]);
-    });
-    return cleaned;
-  };
-
-  const handleTranslate = async (textToTranslate: string) => {
-    if (!textToTranslate) return;
-
-    try {
-      setTranslating(true);
-
-      // --- 1. TRADUZIONE DELLE ISTRUZIONI (Frasi in parallelo) ---
-      const sentences = textToTranslate.split(". ");
-      const translatedSentences = await Promise.all(
-        sentences.map(async (sentence) => {
-          const trimmed = sentence.trim();
-          if (!trimmed) return "";
-          try {
-            const response = await fetch(
-              `https://api.mymemory.translated.net/get?q=${encodeURIComponent(trimmed)}&langpair=en|it`,
-            );
-            const data = await response.json();
-            return data.responseData?.translatedText || trimmed;
-          } catch (err) {
-            return trimmed;
-          }
-        }),
-      );
-      const finalTranslation = translatedSentences
-        .filter((s) => s !== "")
-        .join(". ");
-
-      // --- 2. TRADUZIONE DEGLI INGREDIENTI CON DIZIONARIO LOCALE ---
-      const originalIngredients = getIngredients();
-      const translatedIngsList = await Promise.all(
-        originalIngredients.map(async (ing) => {
-          try {
-            let translatedName = cleanAndTranslateText(
-              ing.name,
-              INGREDIENT_CORRECTIONS,
-            );
-
-            if (translatedName.toLowerCase() === ing.name.toLowerCase()) {
-              const response = await fetch(
-                `https://api.mymemory.translated.net/get?q=${encodeURIComponent(ing.name)}&langpair=en|it`,
-              );
-              const data = await response.json();
-              translatedName = data.responseData?.translatedText || ing.name;
-
-              translatedName = cleanAndTranslateText(
-                translatedName,
-                INGREDIENT_CORRECTIONS,
-              );
-            }
-
-            const translatedMeasure = cleanAndTranslateText(
-              ing.measure,
-              MEASURE_TRANSLATIONS,
-            );
-
-            return {
-              name: translatedName,
-              measure: translatedMeasure,
-            };
-          } catch (err) {
-            return {
-              name: cleanAndTranslateText(ing.name, INGREDIENT_CORRECTIONS),
-              measure: cleanAndTranslateText(ing.measure, MEASURE_TRANSLATIONS),
-            };
-          }
-        }),
-      );
-
-      setTranslatedInstructions(finalTranslation);
-      setTranslatedIngredients(translatedIngsList);
-    } catch (error) {
-      console.log("Errore generale durante la traduzione:", error);
-    } finally {
-      setTranslating(false);
-    }
-  };
 
   useEffect(() => {
     if (id) {
@@ -182,7 +45,7 @@ export default function RecipeDetail() {
         setMeal(data.meals[0]);
       }
     } catch (error) {
-      console.log("Errore:", error);
+      console.log("Errore nel recupero della ricetta:", error);
     } finally {
       setLoading(false);
     }
@@ -222,7 +85,7 @@ export default function RecipeDetail() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Barra superiore personalizzata */}
+      {/* Barra superiore */}
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name='arrow-back' size={24} color='#1F2937' />
@@ -233,7 +96,7 @@ export default function RecipeDetail() {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Contenitore Immagine con angoli arrotondati e ombra */}
+        {/* Immagine Ricetta */}
         <View style={styles.imageContainer}>
           <Image
             source={{ uri: meal.strMealThumb }}
@@ -246,41 +109,7 @@ export default function RecipeDetail() {
           {/* Titolo Principale */}
           <Text style={styles.title}>{meal.strMeal}</Text>
 
-          <View style={styles.topTranslateContainer}>
-            {translating ? (
-              <View style={styles.translatingRow}>
-                <ActivityIndicator size='small' color='#E07A5F' />
-                <Text style={styles.translatingText}>
-                  Surici sta traducendo...
-                </Text>
-              </View>
-            ) : translatedInstructions ? (
-              <Pressable
-                style={styles.resetButton}
-                onPress={() => {
-                  setTranslatedInstructions(null);
-                  setTranslatedIngredients(null);
-                }}
-              >
-                <Ionicons name='eye-outline' size={14} color='#6B7280' />
-                <Text style={styles.translateToggleText}>
-                  Mostra originale 🇬🇧
-                </Text>
-              </Pressable>
-            ) : (
-              <Pressable
-                style={styles.translateButtonGlobal}
-                onPress={() => handleTranslate(meal.strInstructions)}
-              >
-                <Ionicons name='language-outline' size={16} color='#FFFFFF' />
-                <Text style={styles.translateButtonTextGlobal}>
-                  Traduci Ricetta in Italiano 🇮🇹
-                </Text>
-              </Pressable>
-            )}
-          </View>
-
-          {/* Badge per Categoria e Provenienza */}
+          {/* Badge Categoria e Provenienza */}
           <View style={styles.metaContainer}>
             <View style={styles.badge}>
               <Ionicons
@@ -302,13 +131,10 @@ export default function RecipeDetail() {
             </View>
           </View>
 
-          {/* Sezione Ingredienti dentro una scheda pulita */}
-          <Text style={styles.sectionTitle}>Ingredienti</Text>
+          {/* Sezione Ingredienti */}
+          <Text style={styles.sectionTitle}>Ingredients</Text>
           <View style={styles.card}>
-            {(translatedIngredients
-              ? translatedIngredients
-              : getIngredients()
-            ).map((item, index) => (
+            {getIngredients().map((item, index) => (
               <View key={index} style={styles.ingredientRow}>
                 <Ionicons
                   name='checkmark-circle'
@@ -326,15 +152,8 @@ export default function RecipeDetail() {
 
           {/* Sezione Preparazione */}
           <View style={styles.instructionsContainer}>
-            <View style={styles.instructionsHeader}>
-              <Text style={styles.sectionTitle}>Preparazione</Text>
-            </View>
-
-            <Text style={styles.instructionsText}>
-              {translatedInstructions
-                ? translatedInstructions
-                : meal.strInstructions}
-            </Text>
+            <Text style={styles.sectionTitle}>Instructions</Text>
+            <Text style={styles.instructionsText}>{meal.strInstructions}</Text>
           </View>
         </View>
       </ScrollView>
@@ -405,56 +224,6 @@ const styles = StyleSheet.create({
     color: "#1F2937",
     lineHeight: 32,
     marginBottom: 12,
-  },
-  topTranslateContainer: {
-    marginVertical: 12,
-    alignItems: "center",
-  },
-  translateButtonGlobal: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    backgroundColor: "#E07A5F",
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 14,
-    width: "100%",
-    shadowColor: "#E07A5F",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  translateButtonTextGlobal: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#FFFFFF",
-  },
-  translatingRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    paddingVertical: 10,
-  },
-  translatingText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#E07A5F",
-  },
-  resetButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    backgroundColor: "#F3F4F6",
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-  },
-  translateToggleText: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#6B7280",
   },
   metaContainer: {
     flexDirection: "row",
@@ -527,12 +296,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
-  },
-  instructionsHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
   },
   instructionsText: {
     fontSize: 15,
