@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-type AppMode = "random" | "frigo";
+type AppMode = "random" | "frigo" | "filtri";
 
 interface ModeSelectorProps {
   currentMode: AppMode;
@@ -55,6 +55,27 @@ export const ModeSelector: React.FC<ModeSelectorProps> = ({
           ]}
         >
           Svuota Frigo
+        </Text>
+      </Pressable>
+      <Pressable
+        style={[
+          styles.tabButton,
+          currentMode === "filtri" && styles.tabActiveButton,
+        ]}
+        onPress={() => onModeChange("filtri")}
+      >
+        <Ionicons
+          name='options'
+          size={20}
+          color={currentMode === "filtri" ? "#FFFFFF" : "#92400E"}
+        />
+        <Text
+          style={[
+            styles.tabText,
+            currentMode === "filtri" && styles.tabActiveText,
+          ]}
+        >
+          Filtri
         </Text>
       </Pressable>
     </View>
