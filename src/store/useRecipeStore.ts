@@ -1,29 +1,38 @@
 import { create } from "zustand";
 
-type AppMode = "random" | "frigo";
+// Aggiorna il tipo del Mode includendo 'filtri'
+type FilterMode = "random" | "frigo" | "filtri";
 
 interface RecipeState {
-  mode: AppMode;
+  mode: FilterMode;
   ingredients: string[];
-  setMode: (mode: AppMode) => void;
-  addIngredient: (ingredient: string) => void;
-  removeIngredient: (ingredient: string) => void;
-  clearIngredients: () => void;
+  selectedCategory: string;
+  selectedArea: string;
+  setMode: (mode: FilterMode) => void;
+  addIngredient: (ing: string) => void;
+  removeIngredient: (ing: string) => void;
+  setSelectedCategory: (category: string) => void;
+  setSelectedArea: (area: string) => void;
+  resetFilters: () => void;
 }
 
 export const useRecipeStore = create<RecipeState>((set) => ({
   mode: "random",
   ingredients: [],
+  selectedCategory: "",
+  selectedArea: "",
   setMode: (mode) => set({ mode }),
-  addIngredient: (ingredient) =>
+  addIngredient: (ing) =>
     set((state) => ({
-      ingredients: state.ingredients.includes(ingredient.trim().toLowerCase())
+      ingredients: state.ingredients.includes(ing)
         ? state.ingredients
-        : [...state.ingredients, ingredient.trim().toLowerCase()],
+        : [...state.ingredients, ing],
     })),
-  removeIngredient: (ingredient) =>
+  removeIngredient: (ing) =>
     set((state) => ({
-      ingredients: state.ingredients.filter((i) => i !== ingredient),
+      ingredients: state.ingredients.filter((i) => i !== ing),
     })),
-  clearIngredients: () => set({ ingredients: [] }),
+  setSelectedCategory: (category) => set({ selectedCategory: category }),
+  setSelectedArea: (area) => set({ selectedArea: area }),
+  resetFilters: () => set({ selectedCategory: "", selectedArea: "" }),
 }));
