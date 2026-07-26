@@ -12,18 +12,16 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRecipeStore } from "../store/useRecipeStore";
 
 // Components
-import { FilterSelector } from "../components/FilterSelector"; // Nuovo componente
 import { HomeHeader } from "../components/HomeHeader";
 import { IngredientSelector } from "../components/IngredientSelector";
 import { ModeSelector } from "../components/ModeSelector";
 import { RecipeCard } from "../components/RecipeCard";
+import { StipiSelector } from "../components/StipiSelector"; // Componente aggiornato
 
 type Meal = {
   idMeal: string;
   strMeal: string;
   strMealThumb: string;
-  strCategory?: string;
-  strArea?: string;
 };
 
 export default function HomeScreen() {
@@ -34,24 +32,22 @@ export default function HomeScreen() {
   const {
     mode,
     ingredients,
-    selectedCategory,
     selectedArea,
     setMode,
     addIngredient,
     removeIngredient,
-    setSelectedCategory,
     setSelectedArea,
   } = useRecipeStore();
 
   useEffect(() => {
     fetchRecipes();
-  }, [mode, ingredients, selectedCategory, selectedArea]);
+  }, [mode, ingredients, selectedArea]);
 
   const fetchRecipes = async () => {
     try {
       setLoading(true);
 
-      // --- MODALITÀ: RANDOM ---
+      // --- 1. MODALITÀ: CASUALE ---
       if (mode === "random") {
         const results: Meal[] = [];
         for (let i = 0; i < 8; i++) {
@@ -64,7 +60,7 @@ export default function HomeScreen() {
         setMeals(results);
       }
 
-      // --- MODALITÀ: SVUOTA FRIGO ---
+      // --- 2. MODALITÀ: SVUOTA FRIGO ---
       else if (mode === "frigo") {
         if (ingredients.length === 0) {
           setMeals([]);
@@ -125,58 +121,20 @@ export default function HomeScreen() {
         setMeals(filteredResults);
       }
 
-      // --- NUOVA MODALITÀ: FILTRI AVANZATI (CATEGORIA + AREA) ---
-      else if (mode === "filtri") {
-        if (!selectedCategory && !selectedArea) {
-          // Se nessun filtro è selezionato, mostriamo un set vuoto o iniziale
+      // --- 3. NUOVA MODALITÀ: STIPI NEL MONDO ---
+      else if (mode === "stipi") {
+        if (!selectedArea) {
           setMeals([]);
           setLoading(false);
           return;
         }
 
-        let url = "";
-        // Scegliamo l'endpoint principale in base a cosa ha selezionato l'utente
-        if (selectedCategory) {
-          url = `https://www.themealdb.com/api/json/v1/1/filter.php?c=${selectedCategory}`;
-        } else {
-          url = `https://www.themealdb.com/api/json/v1/1/filter.php?a=${selectedArea}`;
-        }
-
-        const response = await fetch(url);
+        const response = await fetch(
+          `https://www.themealdb.com/api/json/v1/1/filter.php?a=${selectedArea}`,
+        );
         const data = await response.json();
 
-        if (!data.meals) {
-          setMeals([]);
-          setLoading(false);
-          return;
-        }
-
-        // Se sono stati scelti ENTRAMBI i filtri, dobbiamo fare un controllo incrociato sui dettagli
-        if (selectedCategory && selectedArea) {
-          const crossFilteredResults: Meal[] = [];
-          await Promise.all(
-            data.meals.map(async (shortMeal: Meal) => {
-              try {
-                const detailResponse = await fetch(
-                  `https://www.themealdb.com/api/json/v1/1/lookup.php?i=${shortMeal.idMeal}`,
-                );
-                const detailData = await detailResponse.json();
-                const fullMeal = detailData.meals?.[0];
-
-                // Verifichiamo che corrisponda anche al secondo filtro (Area)
-                if (fullMeal && fullMeal.strArea === selectedArea) {
-                  crossFilteredResults.push(shortMeal);
-                }
-              } catch (err) {
-                console.log("Errore filtri incrociati:", err);
-              }
-            }),
-          );
-          setMeals(crossFilteredResults);
-        } else {
-          // Se ne è stato selezionato solo uno dei due, i dati della prima chiamata bastano già
-          setMeals(data.meals);
-        }
+        setMeals(data.meals || []);
       }
     } catch (error) {
       console.log("Errore API principale:", error);
@@ -202,7 +160,7 @@ export default function HomeScreen() {
 
       <ModeSelector currentMode={mode} onModeChange={setMode} />
 
-      {/* Selettore Frigo */}
+      {/* Interfaccia Frigo */}
       {mode === "frigo" && (
         <IngredientSelector
           ingredients={ingredients}
@@ -211,12 +169,10 @@ export default function HomeScreen() {
         />
       )}
 
-      {/* Selettore Filtri avanzati */}
-      {mode === "filtri" && (
-        <FilterSelector
-          selectedCategory={selectedCategory}
+      {/* Interfaccia Stipi nel Mondo */}
+      {mode === "stipi" && (
+        <StipiSelector
           selectedArea={selectedArea}
-          onCategoryChange={setSelectedCategory}
           onAreaChange={setSelectedArea}
         />
       )}
@@ -238,16 +194,16 @@ export default function HomeScreen() {
             Metti almeno un ingrediente per stanare le ricette!
           </Text>
         </View>
-      ) : mode === "filtri" && !selectedCategory && !selectedArea ? (
+      ) : mode === "stipi" && !selectedArea ? (
         <View style={styles.emptyContainer}>
           <Ionicons
-            name='options-outline'
+            name='earth-outline'
             size={48}
             color='#92400E'
             opacity={0.5}
           />
           <Text style={styles.emptyText}>
-            Seleziona una categoria o un'area geografica per filtrare i piatti!
+            Seleziona uno Stato per aprire il suo stipo e scoprirne le ricette!
           </Text>
         </View>
       ) : (
@@ -264,7 +220,7 @@ export default function HomeScreen() {
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>
-                Nessuna ricetta trovata con questi filtri.
+                Nessuna ricetta trovata in questo stipo.
               </Text>
             </View>
           }
