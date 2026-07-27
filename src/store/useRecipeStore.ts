@@ -20,11 +20,16 @@ export const useRecipeStore = create<RecipeState>((set) => ({
   selectedArea: "",
   setMode: (mode) => set({ mode }),
   addIngredient: (ing) =>
-    set((state) => ({
-      ingredients: state.ingredients.includes(ing)
-        ? state.ingredients
-        : [...state.ingredients, ing],
-    })),
+    set((state) => {
+      //Bug fix: when using a phone, ingredients often get capitalized and aren't recognized, since the API is case-sensitive.
+      const cleanedIng = ing.trim().toLowerCase();
+
+      return {
+        ingredients: state.ingredients.includes(cleanedIng)
+          ? state.ingredients
+          : [...state.ingredients, cleanedIng],
+      };
+    }),
   removeIngredient: (ing) =>
     set((state) => ({
       ingredients: state.ingredients.filter((i) => i !== ing),
