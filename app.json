@@ -7,7 +7,11 @@
     "icon": "./src/assets/images/icon.png",
     "scheme": "surici",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.violihatesteam.surici",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -27,7 +31,7 @@
         "expo-splash-screen",
         {
           "backgroundColor": "#FFF8F0",
-          "image": "./src/assets/images/splash-icon.png",
+          "image": "./src/assets/images/icon.png",
           "imageWidth": 120
         }
       ]
