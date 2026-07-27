@@ -17,7 +17,8 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.violihatesteam.surici"
     },
     "web": {
       "output": "static",
@@ -44,6 +45,12 @@
         "projectId": "db9aaf9f-843f-4963-8287-0028f6338260"
       }
     },
-    "owner": "violihates-team"
+    "owner": "violihates-team",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/db9aaf9f-843f-4963-8287-0028f6338260"
+    }
   }
 }
